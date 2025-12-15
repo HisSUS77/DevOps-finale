@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Users List</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+    <div class="container">
+        <h1>👥 Users Directory</h1>
+        
+        <div class="nav-links">
+            <a href="/">🏠 Back to Home</a>
+        </div>
+
+        <div class="stats">
+            Total Users: {{ users|length }}
+        </div>
+
+        <div class="search-container">
+            <div class="search-box">
+                <input type="search" id="searchInput" placeholder="🔍 Search by name or email..." onkeyup="searchTable()">
+            </div>
+        </div>
+
+        {% if users %}
+        <table id="usersTable">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr>
+                    <td>{{ user[0] }}</td>
+                    <td>{{ user[1] }}</td>
+                    <td>{{ user[2] }}</td>
+                    <td>
+                        <form action="/delete_user/{{ user[0] }}" method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this user?');">
+                            <button type="submit" class="delete-btn">🗑️ Delete</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="no-users">
+            <p>📭 No users found. Add some users to get started!</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <script>
+        function searchTable() {
+            const input = document.getElementById('searchInput');
+            const filter = input.value.toLowerCase();
+            const table = document.getElementById('usersTable');
+            const tbody = table.getElementsByTagName('tbody')[0];
+            const rows = tbody.getElementsByTagName('tr');
+
+            for (let i = 0; i < rows.length; i++) {
+                const nameCell = rows[i].getElementsByTagName('td')[1];
+                const emailCell = rows[i].getElementsByTagName('td')[2];
+                
+                if (nameCell && emailCell) {
+                    const nameText = nameCell.textContent || nameCell.innerText;
+                    const emailText = emailCell.textContent || emailCell.innerText;
+                    
+                    if (nameText.toLowerCase().indexOf(filter) > -1 || emailText.toLowerCase().indexOf(filter) > -1) {
+                        rows[i].style.display = '';
+                    } else {
+                        rows[i].style.display = 'none';
+                    }
+                }
+            }
+        }
+    </script>
+</body>
+</html>

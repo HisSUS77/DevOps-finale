@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>User Management System</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 User Management System</h1>
+        <p class="subtitle">Manage your users efficiently with style</p>
+        
+        <div class="nav-links">
+            <a href="/users">👥 View All Users</a>
+        </div>
+
+        <div class="card">
+            <h2>➕ Add New User</h2>
+            <form action="/add_user" method="POST">
+                <div class="form-group">
+                    <label>Full Name:</label>
+                    <input type="text" name="name" placeholder="Enter full name" required>
+                </div>
+                <div class="form-group">
+                    <label>Email Address:</label>
+                    <input type="email" name="email" placeholder="Enter email address" required>
+                </div>
+                <input type="submit" value="Add User">
+            </form>
+        </div>
+
+        {% if message %}
+        <div class="stats">
+            {{ message }}
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>
