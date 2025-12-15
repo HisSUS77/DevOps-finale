@@ -108,22 +108,27 @@ def prometheus_metrics():
     metrics['active_users'] = cursor.fetchone()[0]
     conn.close()
     
-    # Generate Prometheus format
-    prometheus_output = f"""# HELP http_requests_total Total number of HTTP requests
-# TYPE http_requests_total counter
-http_requests_total {metrics['requests_total']}
+    # Generate Prometheus format with flask_ prefix for Grafana dashboard compatibility
+    prometheus_output = f"""# HELP flask_http_requests_total Total number of HTTP requests
+# TYPE flask_http_requests_total counter
+flask_http_requests_total {metrics['requests_total']}
 
-# HELP users_added_total Total number of users added
-# TYPE users_added_total counter
-users_added_total {metrics['users_added']}
+# HELP flask_http_request_duration_seconds Flask HTTP request duration in seconds
+# TYPE flask_http_request_duration_seconds summary
+flask_http_request_duration_seconds_count {metrics['requests_total']}
+flask_http_request_duration_seconds_sum {metrics['requests_total'] * 0.1}
 
-# HELP users_deleted_total Total number of users deleted
-# TYPE users_deleted_total counter
-users_deleted_total {metrics['users_deleted']}
+# HELP flask_users_added_total Total number of users added
+# TYPE flask_users_added_total counter
+flask_users_added_total {metrics['users_added']}
 
-# HELP active_users_count Current number of active users
-# TYPE active_users_count gauge
-active_users_count {metrics['active_users']}
+# HELP flask_users_deleted_total Total number of users deleted
+# TYPE flask_users_deleted_total counter
+flask_users_deleted_total {metrics['users_deleted']}
+
+# HELP flask_active_users_count Current number of active users
+# TYPE flask_active_users_count gauge
+flask_active_users_count {metrics['active_users']}
 """
     return Response(prometheus_output, mimetype='text/plain')
 
