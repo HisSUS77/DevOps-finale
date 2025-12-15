@@ -77,14 +77,17 @@ metadata:
   name: grafana-datasources
   namespace: monitoring
 data:
-  prometheus.yaml: |
+  datasource.yml: |
     apiVersion: 1
     datasources:
       - name: Prometheus
         type: prometheus
-        url: http://prometheus.monitoring.svc.cluster.local:9090
+        url: http://prometheus:9090
         access: proxy
         isDefault: true
+        editable: true
+        jsonData:
+          timeInterval: "5s"
 ---
 # ---- Grafana Deployment ----
 apiVersion: apps/v1
@@ -108,11 +111,23 @@ spec:
         ports:
         - containerPort: 3000
         env:
+        - name: GF_SECURITY_ADMIN_USER
+          value: "admin"
         - name: GF_SECURITY_ADMIN_PASSWORD
           value: "admin123"
+        - name: GF_INSTALL_PLUGINS
+          value: ""
+        - name: GF_SERVER_ROOT_URL
+          value: "http://localhost:3000"
         volumeMounts:
         - name: grafana-datasources
           mountPath: /etc/grafana/provisioning/datasources
+        readinessProbe:
+          httpGet:
+            path: /api/health
+            port: 3000
+          initialDelaySeconds: 10
+          periodSeconds: 5
       volumes:
       - name: grafana-datasources
         configMap:
