@@ -46,13 +46,21 @@ pipeline {
 
         stage('Monitoring (Prometheus & Grafana)') {
             steps {
-               
-                echo "Applying Prometheus + Grafana YAML"
-                sh 'kubectl apply -f monitoring/monitoring-all.yaml'
-                echo "Checking Pods"
-                sh 'kubectl get pods -n monitoring'
-                echo "Checking Services"
-                sh 'kubectl get svc -n monitoring'
+                sh '''
+                    helm repo add prometheus-community https://prometheus-community.github.io/helm-charts || true
+                    helm repo update
+                    
+                    kubectl create namespace monitoring || true
+                    
+                    helm upgrade --install prometheus kube-prometheus-stack \
+                      --repo https://prometheus-community.github.io/helm-charts \
+                      --namespace monitoring
+                    
+                    echo "Checking Monitoring Pods"
+                    kubectl get pods -n monitoring
+                    echo "Checking Monitoring Services"
+                    kubectl get svc -n monitoring
+                '''
             }
         }
 

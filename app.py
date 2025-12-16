@@ -58,7 +58,6 @@ def delete_user(user_id):
     cursor.execute("DELETE FROM users WHERE id = ?", (user_id,))
     conn.commit()
     conn.close()
-    metrics['users_deleted'] += 1
     return redirect(url_for('list_users'))
 
 # API endpoint to get user count
@@ -82,6 +81,3 @@ def api_users():
     users_list = [{'id': user[0], 'name': user[1], 'email': user[2]} for user in users]
     return jsonify(users_list)
 
-# Prometheus metrics endpoint
-    init_db()
-    app.run(host='0.0.0.0', port=5000)
