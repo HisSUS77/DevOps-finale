@@ -1,23 +1,9 @@
-from flask import Flask, request, jsonify, render_template, redirect, url_for, flash, Response
+from flask import Flask, request, jsonify, render_template, redirect, url_for, flash
 import sqlite3
-import time
 
 app = Flask(__name__)
 app.secret_key = 'your-secret-key-here-change-in-production'  # Needed for flash messages
 DATABASE = 'myapp.db'
-
-# Simple metrics tracking
-metrics = {
-    'requests_total': 0,
-    'users_added': 0,
-    'users_deleted': 0,
-    'active_users': 0
-}
-
-# Track requests
-@app.before_request
-def before_request():
-    metrics['requests_total'] += 1
 
 # Initialize database
 def init_db():
@@ -59,7 +45,6 @@ def add_user():
         cursor.execute("INSERT INTO users (name, email) VALUES (?, ?)", (name, email))
         conn.commit()
         conn.close()
-        metrics['users_added'] += 1
         flash(f'✅ User {name} added successfully!', 'success')
     except sqlite3.IntegrityError:
         flash('⚠️ Email already exists!', 'error')
@@ -74,7 +59,6 @@ def delete_user(user_id):
     conn.commit()
     conn.close()
     metrics['users_deleted'] += 1
-    flash('🗑️ User deleted successfully!', 'success')
     return redirect(url_for('list_users'))
 
 # API endpoint to get user count
@@ -99,44 +83,5 @@ def api_users():
     return jsonify(users_list)
 
 # Prometheus metrics endpoint
-@app.route('/metrics')
-def prometheus_metrics():
-    # Update active users count
-    conn = sqlite3.connect(DATABASE)
-    cursor = conn.cursor()
-    cursor.execute("SELECT COUNT(*) FROM users")
-    metrics['active_users'] = cursor.fetchone()[0]
-    conn.close()
-    
-    # Generate Prometheus format with flask_ prefix for Grafana dashboard compatibility
-    prometheus_output = f"""# HELP flask_http_requests_total Total number of HTTP requests
-# TYPE flask_http_requests_total counter
-flask_http_requests_total {metrics['requests_total']}
-
-# HELP flask_http_request_duration_seconds Flask HTTP request duration in seconds
-# TYPE flask_http_request_duration_seconds summary
-flask_http_request_duration_seconds_count {metrics['requests_total']}
-flask_http_request_duration_seconds_sum {metrics['requests_total'] * 0.1}
-
-# HELP flask_users_added_total Total number of users added
-# TYPE flask_users_added_total counter
-flask_users_added_total {metrics['users_added']}
-
-# HELP flask_users_deleted_total Total number of users deleted
-# TYPE flask_users_deleted_total counter
-flask_users_deleted_total {metrics['users_deleted']}
-
-# HELP flask_active_users_count Current number of active users
-# TYPE flask_active_users_count gauge
-flask_active_users_count {metrics['active_users']}
-"""
-    return Response(prometheus_output, mimetype='text/plain')
-
-# Health check endpoint
-@app.route('/health')
-def health():
-    return jsonify({'status': 'healthy', 'timestamp': time.time()})
-
-if __name__ == '__main__':
     init_db()
     app.run(host='0.0.0.0', port=5000)
